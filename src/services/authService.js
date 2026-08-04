@@ -2,10 +2,15 @@
 // Firebase Authentication + Firestore user profile helpers
 // Expects ../firebase/firebase to export: `auth` (Firebase Auth) and `db` (Firestore)
 
+// authService.js
+// Firebase Authentication + Firestore user profile helpers
+// Expects ../firebase/firebase to export: `auth` (Firebase Auth) and `db` (Firestore)
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  sendPasswordResetEmail
 } from "firebase/auth";
 
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
@@ -102,6 +107,24 @@ export async function logoutUser() {
     await signOut(auth);
   } catch (error) {
     console.error("logoutUser error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send password reset email to the provided email address.
+ * @param {string} email
+ * @returns {Promise<void>}
+ * @throws FirebaseError on failure
+ */
+export async function resetPassword(email) {
+  try {
+    if (!email) {
+      throw new Error("Email is required to reset password.");
+    }
+    await sendPasswordResetEmail(auth, email);
+  } catch (error) {
+    console.error("resetPassword error:", error);
     throw error;
   }
 }

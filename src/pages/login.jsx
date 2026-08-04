@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
-import { loginUser } from "../services/authService";
+import { loginUser, resetPassword } from "../services/authService";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "", remember: false });
@@ -55,6 +55,23 @@ export default function Login() {
       alert(error?.message || "Login failed. Please try again.");
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  // New: handle forgot password using resetPassword from authService
+  async function handleForgotPassword() {
+    const email = form.email.trim();
+    if (!email) {
+      alert("Please enter your registered email.");
+      return;
+    }
+
+    try {
+      await resetPassword(email);
+      alert("Password reset email sent successfully. Check your inbox.");
+    } catch (error) {
+      console.error("Password reset failed:", error);
+      alert(error?.message || "Failed to send password reset email. Please try again.");
     }
   }
 
@@ -117,7 +134,23 @@ export default function Login() {
                 />
                 Remember me
               </label>
-              <a className="forgot" href="/forgot-password">Forgot Password?</a>
+
+              {/* Replaced link with a button that looks identical to the original link */}
+              <button
+                type="button"
+                className="forgot"
+                onClick={handleForgotPassword}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  padding: 0,
+                  font: "inherit",
+                  color: undefined,
+                  cursor: "pointer",
+                }}
+              >
+                Forgot Password?
+              </button>
             </div>
 
             <div className="actions">
