@@ -1,0 +1,617 @@
+/* ================================
+   FITIQ DASHBOARD
+   ================================ */
+
+.dashboard-root {
+  --dashboard-bg: #f6f8fb;
+  --dashboard-card: #ffffff;
+  --dashboard-primary: #4f46e5;
+  --dashboard-text: #0f172a;
+  --dashboard-muted: #6b7280;
+  --dashboard-border: #e5e7eb;
+
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  background: var(--dashboard-bg);
+  color: var(--dashboard-text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* ================================
+   SIDEBAR
+   ================================ */
+
+.dashboard-root .sidebar {
+  width: 260px;
+  min-height: 100vh;
+  flex-shrink: 0;
+
+  background: #ffffff;
+  border-right: 1px solid var(--dashboard-border);
+
+  padding: 20px;
+
+  display: flex;
+  flex-direction: column;
+
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+
+  position: relative;
+  z-index: 50;
+}
+
+.dashboard-root .sidebar .brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.dashboard-root .logo {
+  color: var(--dashboard-primary);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.dashboard-root .close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #111827;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* ================================
+   NAVIGATION
+   ================================ */
+
+.dashboard-root .nav {
+  margin-top: 10px;
+}
+
+.dashboard-root .nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dashboard-root .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 14px;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  color: #1f2937;
+  background: transparent;
+
+  transition: 0.2s ease;
+}
+
+.dashboard-root .nav-item:hover {
+  background: #eef2ff;
+  color: var(--dashboard-primary);
+}
+
+.dashboard-root .nav-icon {
+  width: 26px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.dashboard-root .nav-text {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dashboard-root .logout {
+  margin-top: 18px;
+  color: #dc2626;
+}
+
+.dashboard-root .logout:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+/* ================================
+   MAIN
+   ================================ */
+
+.dashboard-root .main {
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+
+  background: var(--dashboard-bg);
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* ================================
+   TOP BAR
+   ================================ */
+
+.dashboard-root .topbar {
+  height: 70px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 28px;
+
+  background: #ffffff;
+  border-bottom: 1px solid var(--dashboard-border);
+}
+
+.dashboard-root .menu-btn {
+  display: none;
+
+  background: transparent;
+  border: none;
+
+  color: #111827;
+
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.dashboard-root .topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-root .user-greeting {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ================================
+   CONTENT
+   ================================ */
+
+.dashboard-root .content {
+  width: 100%;
+  max-width: 1500px;
+
+  margin: 0 auto;
+
+  padding: 28px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ================================
+   CARDS
+   ================================ */
+
+.dashboard-root .card {
+  background: #ffffff;
+
+  border: 1px solid var(--dashboard-border);
+  border-radius: 14px;
+
+  padding: 20px;
+
+  box-shadow: 0 5px 20px rgba(15, 23, 42, 0.05);
+}
+
+/* ================================
+   WELCOME CARD
+   ================================ */
+
+.dashboard-root .welcome-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.dashboard-root .welcome-card h1 {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.dashboard-root .welcome-card p {
+  margin: 8px 0 0;
+
+  color: #6b7280;
+
+  font-size: 14px;
+}
+
+.dashboard-root .profile-overview {
+  margin-top: 14px;
+}
+
+.dashboard-root .profile-overview strong {
+  color: #374151;
+}
+.dashboard-root .profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+}
+
+.dashboard-root .profile-grid div {
+  display: flex;
+  gap: 6px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.dashboard-root .profile-grid strong {
+  color: #374151;
+}
+
+.dashboard-root .profile-grid span {
+  color: var(--dashboard-muted);
+}
+
+/* ================================
+   BUTTONS
+   ================================ */
+
+.dashboard-root .btn {
+  padding: 9px 14px;
+
+  border-radius: 8px;
+
+  border: 1px solid #e5e7eb;
+
+  background: #ffffff;
+
+  color: #374151;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.dashboard-root .btn:hover {
+  background: #f9fafb;
+}
+
+.dashboard-root .btn.primary {
+  background: var(--dashboard-primary);
+  border-color: var(--dashboard-primary);
+
+  color: #ffffff;
+
+  box-shadow: 0 5px 15px rgba(79, 70, 229, 0.2);
+}
+
+.dashboard-root .btn.primary:hover {
+  background: #4338ca;
+}
+
+.dashboard-root .btn.subtle {
+  background: #ffffff;
+  color: var(--dashboard-primary);
+  border-color: #c7d2fe;
+}
+
+.dashboard-root .btn.tiny {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+/* ================================
+   STATISTICS
+   ================================ */
+
+.dashboard-root .stats-grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  gap: 16px;
+}
+
+.dashboard-root .stat-card {
+  min-height: 135px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dashboard-root .stat-header h3 {
+  margin: 0;
+
+  color: #6b7280;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dashboard-root .stat-value {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+
+  margin-top: 12px;
+}
+
+.dashboard-root .stat-value .value {
+  color: #111827;
+
+  font-size: 28px;
+  font-weight: 750;
+}
+
+.dashboard-root .stat-value .unit {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.dashboard-root .stat-footer {
+  margin-top: 10px;
+
+  color: #9ca3af;
+
+  font-size: 12px;
+}
+
+/* ================================
+   LOWER GRID
+   ================================ */
+
+.dashboard-root .lower-grid {
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr) 360px;
+
+  gap: 16px;
+
+  align-items: start;
+}
+
+/* ================================
+   CARD TITLES
+   ================================ */
+
+.dashboard-root .card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 16px;
+}
+
+.dashboard-root .card-title h3 {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.dashboard-root .muted {
+  color: #6b7280;
+}
+
+/* ================================
+   WEEKLY CHART
+   ================================ */
+
+.dashboard-root .chart-placeholder {
+  height: 220px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f8faff;
+
+  border: 1px dashed #c7d2fe;
+
+  border-radius: 10px;
+}
+
+.dashboard-root .chart-mock {
+  color: #6b7280;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ================================
+   AI RECOMMENDATION
+   ================================ */
+
+.dashboard-root .ai-content p {
+  margin: 0 0 16px;
+
+  color: #374151;
+
+  line-height: 1.6;
+
+  font-size: 14px;
+}
+
+.dashboard-root .ai-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ================================
+   ACTIVITY
+   ================================ */
+
+.dashboard-root .activity-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.dashboard-root .table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.dashboard-root .activity-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  min-width: 600px;
+}
+
+.dashboard-root .activity-table th {
+  padding: 12px;
+
+  text-align: left;
+
+  color: #6b7280;
+
+  background: #f9fafb;
+
+  border-bottom: 1px solid var(--dashboard-border);
+
+  font-size: 13px;
+}
+
+.dashboard-root .activity-table td {
+  padding: 13px 12px;
+
+  color: #374151;
+
+  border-bottom: 1px solid #f1f5f9;
+
+  font-size: 14px;
+}
+
+.dashboard-root .activity-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* ================================
+   MOBILE
+   ================================ */
+
+.dashboard-root .overlay {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-root .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-root .lower-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 780px) {
+  .dashboard-root .sidebar {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    width: 260px;
+
+    transform: translateX(-110%);
+
+    transition: transform 0.2s ease;
+
+    z-index: 100;
+  }
+
+  .dashboard-root .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .dashboard-root .close-btn {
+    display: block;
+  }
+
+  .dashboard-root .menu-btn {
+    display: block;
+  }
+
+  .dashboard-root .overlay {
+    display: block;
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(15, 23, 42, 0.4);
+
+    z-index: 90;
+  }
+
+  .dashboard-root .content {
+    padding: 20px;
+  }
+
+  .dashboard-root .topbar {
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-root .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-root .welcome-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard-root .welcome-cta {
+    width: 100%;
+  }
+
+  .dashboard-root .btn.primary {
+    width: 100%;
+  }
+
+  .dashboard-root .card {
+    padding: 16px;
+  }
+
+  .dashboard-root .content {
+    padding: 14px;
+  }
+
+  .dashboard-root .welcome-card h1 {
+    font-size: 20px;
+  }
+    .dashboard-root .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}

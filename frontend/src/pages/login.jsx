@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import { loginUser, resetPassword } from "../services/authService";
+import { auth, db } from "../firebase/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "", remember: false });
@@ -35,28 +37,54 @@ export default function Login() {
   }
 
   async function handleSubmit(e) {
-    e.preventDefault();
-    validate();
+  e.preventDefault();
 
-    if (!isValid) {
-      setIsSubmitting(true);
-      setTimeout(() => setIsSubmitting(false), 700);
-      return;
-    }
+  validate();
 
-    setIsSubmitting(true);
-    try {
-      await loginUser(form.email.trim(), form.password);
-      // On success navigate to dashboard
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Login failed:", error);
-      // Show the error message to the user
-      alert(error?.message || "Login failed. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  if (!isValid) {
+    return;
   }
+
+  setIsSubmitting(true);
+
+  try {
+    // 1. Login using Firebase Authentication
+    await loginUser(form.email.trim(), form.password);
+
+    // 2. Get currently logged-in user
+    const user = auth.currentUser;
+
+    if (!user) {
+      throw new Error("Unable to get logged-in user.");
+    }
+
+    // 3. Check user's Firestore document
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    // 4. Decide where the user should go
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+
+      if (userData.assessmentCompleted === true) {
+        // Existing user who already completed assessment
+        navigate("/dashboard");
+      } else {
+        // User exists but assessment is not completed
+        navigate("/assessment");
+      }
+    } else {
+      // New user with no Firestore document
+      navigate("/assessment");
+    }
+
+  } catch (error) {
+    console.error("Login failed:", error);
+    alert(error?.message || "Login failed. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+}
 
   // New: handle forgot password using resetPassword from authService
   async function handleForgotPassword() {
