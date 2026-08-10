@@ -4,6 +4,7 @@ import "./Login.css";
 import { loginUser, resetPassword } from "../services/authService";
 import { auth, db } from "../firebase/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "", remember: false });
@@ -36,55 +37,75 @@ export default function Login() {
     setIsValid(Object.keys(newErrors).length === 0);
   }
 
-  async function handleSubmit(e) {
-  e.preventDefault();
-
-  validate();
-
-  if (!isValid) {
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    // 1. Login using Firebase Authentication
-    await loginUser(form.email.trim(), form.password);
-
-    // 2. Get currently logged-in user
-    const user = auth.currentUser;
-
-    if (!user) {
-      throw new Error("Unable to get logged-in user.");
-    }
-
-    // 3. Check user's Firestore document
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
-
-    // 4. Decide where the user should go
-    if (userSnap.exists()) {
-      const userData = userSnap.data();
-
-      if (userData.assessmentCompleted === true) {
-        // Existing user who already completed assessment
-        navigate("/dashboard");
-      } else {
-        // User exists but assessment is not completed
-        navigate("/assessment");
+  async function waitForAuthState() {
+    // Wrap onAuthStateChanged to return a Promise that resolves with the user (or null)
+    return new Promise((resolve, reject) => {
+      try {
+        const unsubscribe = onAuthStateChanged(
+          auth,
+          (u) => {
+            unsubscribe();
+            resolve(u);
+          },
+          (err) => {
+            unsubscribe();
+            reject(err);
+          }
+        );
+      } catch (err) {
+        reject(err);
       }
-    } else {
-      // New user with no Firestore document
-      navigate("/assessment");
+    });
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    validate();
+
+    if (!isValid) {
+      setIsSubmitting(true);
+      setTimeout(() => setIsSubmitting(false), 700);
+      return;
     }
 
-  } catch (error) {
-    console.error("Login failed:", error);
-    alert(error?.message || "Login failed. Please try again.");
-  } finally {
-    setIsSubmitting(false);
+    setIsSubmitting(true);
+
+    try {
+      // Login with Firebase Authentication (your existing authService)
+      await loginUser(form.email.trim(), form.password);
+
+      // Wait for Firebase to provide the authenticated user reliably
+      const user = await waitForAuthState();
+
+      if (!user) {
+        throw new Error("User login failed. Please try again.");
+      }
+
+      // Get user's document from Firestore
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      // Decision logic per your requirements:
+      // If no Firestore document -> initial assessment
+      // If document exists and assessmentCompleted === true -> dashboard
+      // Otherwise -> initial assessment
+      if (!userSnap.exists()) {
+        navigate("/initial-assessment");
+      } else {
+        const userData = userSnap.data();
+        if (userData?.assessmentCompleted === true) {
+          navigate("/dashboard");
+        } else {
+          navigate("/initial-assessment");
+        }
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+      alert(error?.message || "Login failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
-}
 
   // New: handle forgot password using resetPassword from authService
   async function handleForgotPassword() {
