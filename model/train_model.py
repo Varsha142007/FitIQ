@@ -1,137 +1,385 @@
+
 # train_model.py
-# Train and compare classification models to predict "Sleep Disorder" using the cleaned Sleep Health dataset.
-# - Loads cleaned data
-# - Prepares features and target
-# - Encodes categorical features if any remain
-# - Trains Logistic Regression, Decision Tree, and Random Forest
-# - Evaluates each model and prints metrics
-# - Saves the best model to models/best_sleep_disorder_model.pkl
+# Train and compare classification models to predict "Sleep Disorder"
+# using only records that have an actual Sleep Disorder label.
 
 import os
-import pandas as pd
-import numpy as np
 import joblib
-LABEL_ENCODER_PATH = os.path.join("models", "label_encoders.pkl")
+import pandas as pd
+
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder  # used if there are remaining non-numeric columns
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import joblib
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix
+)
 
 # ---------- Configuration ----------
-CLEANED_CSV_PATH = os.path.join("datasets", "processed", "sleep_health_cleaned.csv")
-OUTPUT_MODEL_PATH = os.path.join("models", "best_sleep_disorder_model.pkl")
-RANDOM_STATE = 42
-TEST_SIZE = 0.20  # 20% test set
 
-# ---------- Load dataset ----------
+CLEANED_CSV_PATH = os.path.join(
+    "datasets",
+    "processed",
+    "sleep_health_cleaned.csv"
+)
+
+LABEL_ENCODER_PATH = os.path.join(
+    "models",
+    "label_encoders.pkl"
+)
+
+OUTPUT_MODEL_PATH = os.path.join(
+    "models",
+    "best_sleep_disorder_model.pkl"
+)
+
+RANDOM_STATE = 42
+TEST_SIZE = 0.20
+
+TARGET_COLUMN = "Sleep Disorder"
+
+
+# ---------- Load cleaned dataset ----------
+
 if not os.path.exists(CLEANED_CSV_PATH):
-    raise FileNotFoundError(f"Cleaned dataset not found at {CLEANED_CSV_PATH}. Please run preprocessing first.")
+    raise FileNotFoundError(
+        f"Cleaned dataset not found at {CLEANED_CSV_PATH}. "
+        "Please run preprocessing.py first."
+    )
 
 df = pd.read_csv(CLEANED_CSV_PATH)
 
-# ---------- Basic dataset info ----------
 print("Loaded dataset:")
 print("Shape:", df.shape)
 print("Columns:", list(df.columns))
 print()
 
-# ---------- Prepare features (X) and target (y) ----------
-TARGET_COLUMN = "Sleep Disorder"
+
+# ---------- Check target column ----------
+
 if TARGET_COLUMN not in df.columns:
-    raise KeyError(f"Target column '{TARGET_COLUMN}' not found in dataset columns.")
-
-# X: all columns except the target
-X = df.drop(columns=[TARGET_COLUMN]).copy()
-y = df[TARGET_COLUMN].copy()
-
-# If target is non-numeric, label-encode it so models can train
-target_label_encoder = None
-if y.dtype == object or str(y.dtype).startswith("string") or not np.issubdtype(y.dtype, np.number):
-    target_label_encoder = LabelEncoder()
-    y = target_label_encoder.fit_transform(y.astype(str))
-    print(f"Target '{TARGET_COLUMN}' label-encoded. Classes: {list(target_label_encoder.classes_)}\n")
-
-# ---------- Handle non-numeric features in X ----------
-# Some columns may still be non-numeric (object/string). Convert them to numeric using LabelEncoder.
-# For a production system you might prefer OneHotEncoder, but LabelEncoder is simple and consistent with previous steps.
-# Load encoders from preprocessing
-if os.path.exists(LABEL_ENCODER_PATH):
-    encoders = joblib.load(LABEL_ENCODER_PATH)
-    print("Loaded Label Encoders")
-else:
-    encoders = {}  # store encoders for potential future inverse transforms
+    raise KeyError(
+        f"Target column '{TARGET_COLUMN}' "
+        "not found in dataset."
+    )
 
 
-# ---------- Train/test split ----------
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y if len(np.unique(y)) > 1 else None
+# ---------- Remove rows without target labels ----------
+
+print("Target value counts before filtering:")
+
+print(
+    df[TARGET_COLUMN].value_counts(dropna=False)
 )
-print(f"Train shape: {X_train.shape}, Test shape: {X_test.shape}\n")
 
-# ---------- Define models to train ----------
+print()
+
+rows_before = len(df)
+
+df = df.dropna(
+    subset=[TARGET_COLUMN]
+).copy()
+
+rows_after = len(df)
+
+print(
+    f"Removed {rows_before - rows_after} "
+    "unlabeled rows."
+)
+
+print(
+    f"Training dataset now contains "
+    f"{rows_after} labeled rows."
+)
+
+print()
+
+
+# ---------- Prepare X and y ----------
+
+X = df.drop(
+    columns=[TARGET_COLUMN]
+).copy()
+
+y = df[TARGET_COLUMN].astype(int)
+
+
+# ---------- Display target distribution ----------
+
+print("Target distribution:")
+
+print(
+    y.value_counts().sort_index()
+)
+
+print()
+
+print(
+    "Target classes from preprocessing:"
+)
+
+if os.path.exists(LABEL_ENCODER_PATH):
+
+    label_encoders = joblib.load(
+        LABEL_ENCODER_PATH
+    )
+
+    if TARGET_COLUMN in label_encoders:
+
+        target_encoder = label_encoders[
+            TARGET_COLUMN
+        ]
+
+        for number, class_name in enumerate(
+            target_encoder.classes_
+        ):
+            print(
+                f"{number} = {class_name}"
+            )
+
+    print()
+
+else:
+
+    label_encoders = {}
+
+    print(
+        "Warning: label_encoders.pkl "
+        "was not found."
+    )
+
+    print()
+
+
+# ---------- Verify features are numeric ----------
+
+print("Feature data types:")
+
+print(X.dtypes)
+
+print()
+
+non_numeric_columns = X.select_dtypes(
+    exclude=["number"]
+).columns.tolist()
+
+if non_numeric_columns:
+
+    raise ValueError(
+        "The following features are still non-numeric: "
+        f"{non_numeric_columns}. "
+        "Run preprocessing.py again."
+    )
+
+
+# ---------- Train/Test Split ----------
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=TEST_SIZE,
+    random_state=RANDOM_STATE,
+    stratify=y
+)
+
+print(
+    f"Train shape: {X_train.shape}"
+)
+
+print(
+    f"Test shape: {X_test.shape}"
+)
+
+print()
+
+
+# ---------- Define Models ----------
+
 models = {
-    "Logistic Regression": LogisticRegression(max_iter=1000, random_state=RANDOM_STATE),
-    "Decision Tree": DecisionTreeClassifier(random_state=RANDOM_STATE),
-    "Random Forest": RandomForestClassifier(n_estimators=100, random_state=RANDOM_STATE)
+
+    "Logistic Regression":
+        LogisticRegression(
+            max_iter=1000,
+            random_state=RANDOM_STATE
+        ),
+
+    "Decision Tree":
+        DecisionTreeClassifier(
+            random_state=RANDOM_STATE
+        ),
+
+    "Random Forest":
+        RandomForestClassifier(
+            n_estimators=200,
+            random_state=RANDOM_STATE
+        )
 }
 
-# ---------- Train, evaluate, and compare models ----------
-results = {}  # store accuracy and model object
+
+# ---------- Train and Evaluate ----------
+
+results = {}
 
 for name, model in models.items():
-    print(f"Training model: {name} ...")
+
+    print("=" * 60)
+
+    print(
+        f"Training model: {name}"
+    )
+
+    print("=" * 60)
+
     # Train
-    model.fit(X_train, y_train)
+    model.fit(
+        X_train,
+        y_train
+    )
 
-    # Predict on test set
-    y_pred = model.predict(X_test)
+    # Predict
+    y_pred = model.predict(
+        X_test
+    )
 
-    # Evaluation metrics
-    acc = accuracy_score(y_test, y_pred)
-    report = classification_report(y_test, y_pred, zero_division=0)
-    cm = confusion_matrix(y_test, y_pred)
+    # Accuracy
+    accuracy = accuracy_score(
+        y_test,
+        y_pred
+    )
 
-    # Print results
-    print(f"--- {name} Results ---")
-    print(f"Accuracy: {acc:.4f}\n")
-    print("Classification Report:")
+    # Classification report
+    report = classification_report(
+        y_test,
+        y_pred,
+        zero_division=0
+    )
+
+    # Confusion matrix
+    cm = confusion_matrix(
+        y_test,
+        y_pred
+    )
+
+    print(
+        f"Accuracy: {accuracy:.4f}"
+    )
+
+    print()
+
+    print(
+        "Classification Report:"
+    )
+
     print(report)
-    print("Confusion Matrix:")
-    print(cm)
-    print("\n")
 
-    # Store results
+    print(
+        "Confusion Matrix:"
+    )
+
+    print(cm)
+
+    print()
+
     results[name] = {
+
         "model": model,
-        "accuracy": acc,
+
+        "accuracy": accuracy,
+
         "classification_report": report,
+
         "confusion_matrix": cm
     }
 
-# ---------- Select best model ----------
-best_model_name = max(results, key=lambda k: results[k]["accuracy"])
-best_model_info = results[best_model_name]
-best_model = best_model_info["model"]
-best_accuracy = best_model_info["accuracy"]
 
-print(f"Best model based on accuracy: {best_model_name} (Accuracy: {best_accuracy:.4f})")
+# ---------- Select Best Model ----------
 
-# ---------- Ensure models directory exists and save best model ----------
-models_dir = os.path.dirname(OUTPUT_MODEL_PATH)
-if models_dir and not os.path.exists(models_dir):
-    os.makedirs(models_dir, exist_ok=True)
+best_model_name = max(
+    results,
+    key=lambda name:
+        results[name]["accuracy"]
+)
 
-# Save the best model using joblib
-joblib.dump({
+best_model_info = results[
+    best_model_name
+]
+
+best_model = best_model_info[
+    "model"
+]
+
+best_accuracy = best_model_info[
+    "accuracy"
+]
+
+
+print("=" * 60)
+
+print(
+    f"BEST MODEL: {best_model_name}"
+)
+
+print(
+    f"Accuracy: {best_accuracy:.4f}"
+)
+
+print("=" * 60)
+
+print()
+
+
+# ---------- Save Model ----------
+
+os.makedirs(
+    "models",
+    exist_ok=True
+)
+
+model_package = {
+
     "model": best_model,
-    "feature_columns": list(X.columns),
-    "target_column": TARGET_COLUMN,
-    "target_label_encoder": target_label_encoder,
-    "feature_label_encoders": encoders
-}, OUTPUT_MODEL_PATH)
 
-print("Best model saved successfully.")
+    "feature_columns": list(
+        X.columns
+    ),
+
+    "target_column": TARGET_COLUMN,
+
+    "feature_label_encoders":
+        label_encoders,
+
+    "target_label_encoder":
+        label_encoders.get(
+            TARGET_COLUMN
+        ),
+
+    "best_model_name":
+        best_model_name,
+
+    "accuracy":
+        best_accuracy
+}
+
+
+joblib.dump(
+    model_package,
+    OUTPUT_MODEL_PATH
+)
+
+print(
+    f"Best model saved successfully to:"
+)
+
+print(
+    OUTPUT_MODEL_PATH
+)
+
+print()
+
+print(
+    "Training completed successfully."
+)
+
